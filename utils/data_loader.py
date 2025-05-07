@@ -1,10 +1,5 @@
 import pandas as pd
 from io import StringIO
-import os
-from datetime import datetime
-
-# Import database utilities
-from database.utils import load_data_from_db, save_csv_data_to_db, get_available_symbols
 
 def validate_csv_data(file_content):
     """
@@ -66,18 +61,7 @@ def load_csv_data(file_path):
         pandas.DataFrame: DataFrame containing the stock price data
     """
     try:
-        # Check if this is a sample file that might be in the database
-        if file_path.startswith("sample_data/"):
-            # Extract symbol from filename
-            filename = os.path.basename(file_path)
-            symbol = filename.split('.')[0]
-            
-            # Try to load from database first
-            df = load_data_from_db(symbol)
-            if df is not None and not df.empty:
-                return df
-        
-        # If we get here, load from CSV file
+        # Read the CSV file
         df = pd.read_csv(file_path)
         
         # Convert date column to datetime
@@ -96,40 +80,3 @@ def load_csv_data(file_path):
     except Exception as e:
         print(f"Error loading CSV file: {str(e)}")
         return None
-
-
-def get_available_stocks():
-    """
-    Get a list of stock symbols available in the database.
-    
-    Returns:
-        list: List of stock symbols
-    """
-    try:
-        return get_available_symbols()
-    except Exception as e:
-        print(f"Error getting available stocks: {str(e)}")
-        return []
-
-
-def save_stock_data(symbol, df):
-    """
-    Save stock data to the database.
-    
-    Args:
-        symbol (str): Stock symbol
-        df (pd.DataFrame): DataFrame with stock price data
-        
-    Returns:
-        tuple: (is_saved, message) - A tuple containing a boolean indicating if data was saved
-               and a message with details
-    """
-    if 'Date' not in df.columns:
-        return False, "Missing 'Date' column in the data"
-    
-    # Convert date column to datetime if it's not already
-    if not pd.api.types.is_datetime64_any_dtype(df['Date']):
-        df['Date'] = pd.to_datetime(df['Date'])
-    
-    # Save to database
-    return save_csv_data_to_db(symbol, df)
