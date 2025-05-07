@@ -3,7 +3,7 @@ from plotly.subplots import make_subplots
 import pandas as pd
 import numpy as np
 
-def create_price_chart(data, chart_type='Line', ma_periods=None):
+def create_price_chart(symbol,data, chart_type='Line', ma_periods=None):
     """
     Create a price chart with optional moving averages and Bollinger Bands.
     
@@ -96,10 +96,16 @@ def create_price_chart(data, chart_type='Line', ma_periods=None):
     
     # Update layout
     fig.update_layout(
-        title='Stock Price Chart',
+        title=symbol,
         xaxis_title='Date',
         yaxis_title='Price',
-        legend_title='Legend',
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1,
+            xanchor="right",
+            x=1
+        ),
         xaxis_rangeslider_visible=False,
         height=500
     )

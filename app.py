@@ -181,6 +181,7 @@ if data is not None:
     # Main price chart
     # Note: Bollinger Bands are automatically displayed if they've been calculated
     fig_price = create_price_chart(
+        selected_sample.split(".")[0],
         filtered_data, 
         chart_type=chart_type, 
         ma_periods=ma_periods if show_ma else []
