@@ -13,40 +13,40 @@ from utils.visualization import create_price_chart, create_volume_chart, create_
 
 # Set page configuration
 st.set_page_config(
-    page_title="Stock Price Analysis",
+    page_title="Хувьцааны Үнийн Шинжилгээ",
     page_icon="📈",
     layout="wide"
 )
 
 # App title and description
-st.title("📈 Stock Price Analyzer")
+st.title("📈 Хувьцааны Үнийн Шинжилгээ")
 st.markdown("""
-This application allows you to visualize and analyze stock price data from CSV files.
-Upload your own stock data or use the sample data provided.
+Энэхүү програм нь хувьцааны үнийн өгөгдлийг дүрслэх, шинжлэх боломжийг олгоно.
+Өөрийн өгөгдлийг оруулах эсвэл жишээ өгөгдлийг ашиглана уу.
 """)
 
 # Sidebar for inputs
-st.sidebar.header("Settings")
+st.sidebar.header("Тохиргоо")
 
 # Option to use sample data or upload custom data
 data_option = st.sidebar.radio(
-    "Choose data source:",
-    ("Use sample data", "Upload your own CSV")
+    "Өгөгдлийн эх үүсвэрийг сонгоно уу:",
+    ("Жишээ өгөгдлийг ашиглах", "Өөрийн CSV файлыг оруулах")
 )
 
 data = None
-if data_option == "Use sample data":
+if data_option == "Жишээ өгөгдлийг ашиглах":
     # List sample files
     sample_files = [f for f in os.listdir("sample_data") if f.endswith('.csv')]
     if sample_files:
-        selected_sample = st.sidebar.selectbox("Select a sample stock:", sample_files)
+        selected_sample = st.sidebar.selectbox("Жишээ хувьцааг сонгоно уу:", sample_files)
         data = load_csv_data(f"sample_data/{selected_sample}")
-        st.sidebar.info(f"Loaded sample data: {selected_sample}")
+        st.sidebar.info(f"Жишээ өгөгдөл ачааллаа: {selected_sample}")
     else:
-        st.sidebar.warning("No sample files found.")
+        st.sidebar.warning("Жишээ файл олдсонгүй.")
 else:
     # File uploader
-    uploaded_file = st.sidebar.file_uploader("Upload a CSV file", type=["csv"])
+    uploaded_file = st.sidebar.file_uploader("CSV файл оруулна уу", type=["csv"])
     
     if uploaded_file is not None:
         # Read the file as string
@@ -64,25 +64,25 @@ else:
                 data['Date'] = pd.to_datetime(data['date'])
                 data = data.drop('date', axis=1)
             
-            st.sidebar.success("Data loaded successfully!")
+            st.sidebar.success("Өгөгдөл амжилттай ачааллаа!")
         else:
-            st.sidebar.error(f"Invalid data format: {message}")
+            st.sidebar.error(f"Өгөгдлийн формат буруу байна: {message}")
 
 # If data is loaded successfully
 if data is not None:
     # Display data summary
-    st.subheader("Data Overview")
+    st.subheader("Өгөгдлийн Тойм")
     col1, col2 = st.columns(2)
     
     with col1:
-        st.write(f"**Total records:** {len(data)}")
+        st.write(f"**Нийт бичлэгүүд:** {len(data)}")
         if 'Date' in data.columns:
-            st.write(f"**Date range:** {data['Date'].min().date()} to {data['Date'].max().date()}")
+            st.write(f"**Огнооны хүрээ:** {data['Date'].min().date()} - {data['Date'].max().date()}")
     
     with col2:
         if all(col in data.columns for col in ['Open', 'High', 'Low', 'Close']):
             latest_data = data.iloc[-1]
-            st.write(f"**Latest price (Close):** ${latest_data['Close']:.2f}")
+            st.write(f"**Хамгийн сүүлийн үнэ (Хаалт):** ${latest_data['Close']:.2f}")
             st.write(f"**Latest trading range:** ${latest_data['Low']:.2f} - ${latest_data['High']:.2f}")
     
     # Date range selection
@@ -129,10 +129,10 @@ if data is not None:
         ma_periods = st.sidebar.multiselect(
             "MA Periods",
             options=[5, 10, 20, 50, 100, 200],
-            default=[20, 50]
+            default=[]
         )
     
-    show_rsi = st.sidebar.checkbox("RSI (Relative Strength Index)", value=False)
+    show_rsi = st.sidebar.checkbox("RSI (Relative Strength Index)", value=True)
     if show_rsi:
         rsi_period = st.sidebar.slider("RSI Period", min_value=7, max_value=21, value=14)
     
@@ -142,7 +142,7 @@ if data is not None:
         macd_slow = st.sidebar.slider("MACD Slow Period", min_value=21, max_value=30, value=26)
         macd_signal = st.sidebar.slider("MACD Signal Period", min_value=5, max_value=12, value=9)
         
-    show_bbands = st.sidebar.checkbox("Bollinger Bands", value=False)
+    show_bbands = st.sidebar.checkbox("Bollinger Bands", value=True)
     if show_bbands:
         bbands_period = st.sidebar.slider("Bollinger Bands Period", min_value=5, max_value=50, value=20)
         bbands_std = st.sidebar.slider("Standard Deviation", min_value=1, max_value=4, value=2)

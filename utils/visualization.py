@@ -52,7 +52,6 @@ def create_price_chart(data, chart_type='Line', ma_periods=None):
                 y=data['BB_Upper'],
                 name='Upper Bollinger Band',
                 line=dict(color='rgba(250, 128, 114, 0.7)', width=1, dash='dot'),
-                hoverinfo='skip'
             )
         )
         
@@ -63,7 +62,6 @@ def create_price_chart(data, chart_type='Line', ma_periods=None):
                 y=data['BB_Middle'],
                 name='Middle Bollinger Band',
                 line=dict(color='rgba(128, 128, 128, 0.7)', width=1, dash='dot'),
-                hoverinfo='skip'
             )
         )
         
@@ -74,7 +72,6 @@ def create_price_chart(data, chart_type='Line', ma_periods=None):
                 y=data['BB_Lower'],
                 name='Lower Bollinger Band',
                 line=dict(color='rgba(173, 216, 230, 0.7)', width=1, dash='dot'),
-                hoverinfo='skip',
                 fill='tonexty',
                 fillcolor='rgba(173, 216, 230, 0.1)'
             )
