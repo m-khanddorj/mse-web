@@ -5,7 +5,7 @@ import numpy as np
 
 def create_price_chart(data, chart_type='Line', ma_periods=None):
     """
-    Create a price chart with optional moving averages.
+    Create a price chart with optional moving averages and Bollinger Bands.
     
     Args:
         data (pandas.DataFrame): DataFrame with price data
@@ -40,6 +40,43 @@ def create_price_chart(data, chart_type='Line', ma_periods=None):
                 low=data['Low'],
                 close=data['Close'],
                 name='Price'
+            )
+        )
+    
+    # Add Bollinger Bands if available
+    if all(col in data.columns for col in ['BB_Upper', 'BB_Middle', 'BB_Lower']):
+        # Add upper band
+        fig.add_trace(
+            go.Scatter(
+                x=data['Date'],
+                y=data['BB_Upper'],
+                name='Upper Bollinger Band',
+                line=dict(color='rgba(250, 128, 114, 0.7)', width=1, dash='dot'),
+                hoverinfo='skip'
+            )
+        )
+        
+        # Add middle band (SMA)
+        fig.add_trace(
+            go.Scatter(
+                x=data['Date'],
+                y=data['BB_Middle'],
+                name='Middle Bollinger Band',
+                line=dict(color='rgba(128, 128, 128, 0.7)', width=1, dash='dot'),
+                hoverinfo='skip'
+            )
+        )
+        
+        # Add lower band
+        fig.add_trace(
+            go.Scatter(
+                x=data['Date'],
+                y=data['BB_Lower'],
+                name='Lower Bollinger Band',
+                line=dict(color='rgba(173, 216, 230, 0.7)', width=1, dash='dot'),
+                hoverinfo='skip',
+                fill='tonexty',
+                fillcolor='rgba(173, 216, 230, 0.1)'
             )
         )
     

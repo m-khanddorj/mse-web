@@ -8,7 +8,7 @@ from io import StringIO
 
 # Import utility modules
 from utils.data_loader import load_csv_data, validate_csv_data
-from utils.technical_analysis import calculate_moving_average, calculate_rsi, calculate_macd
+from utils.technical_analysis import calculate_moving_average, calculate_rsi, calculate_macd, calculate_bollinger_bands
 from utils.visualization import create_price_chart, create_volume_chart, create_indicator_chart
 
 # Set page configuration
@@ -141,6 +141,11 @@ if data is not None:
         macd_fast = st.sidebar.slider("MACD Fast Period", min_value=8, max_value=20, value=12)
         macd_slow = st.sidebar.slider("MACD Slow Period", min_value=21, max_value=30, value=26)
         macd_signal = st.sidebar.slider("MACD Signal Period", min_value=5, max_value=12, value=9)
+        
+    show_bbands = st.sidebar.checkbox("Bollinger Bands", value=False)
+    if show_bbands:
+        bbands_period = st.sidebar.slider("Bollinger Bands Period", min_value=5, max_value=50, value=20)
+        bbands_std = st.sidebar.slider("Standard Deviation", min_value=1, max_value=4, value=2)
     
     # Calculate technical indicators if requested
     if 'Close' in filtered_data.columns:
@@ -161,11 +166,20 @@ if data is not None:
                 slow_period=macd_slow, 
                 signal_period=macd_signal
             )
+            
+        # Calculate Bollinger Bands
+        if show_bbands:
+            filtered_data['BB_Upper'], filtered_data['BB_Middle'], filtered_data['BB_Lower'] = calculate_bollinger_bands(
+                filtered_data['Close'],
+                window=bbands_period,
+                num_std=bbands_std
+            )
     
     # Create and display charts
     st.subheader("Price Chart")
     
     # Main price chart
+    # Note: Bollinger Bands are automatically displayed if they've been calculated
     fig_price = create_price_chart(
         filtered_data, 
         chart_type=chart_type, 
