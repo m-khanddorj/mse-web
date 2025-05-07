@@ -28,22 +28,61 @@ Upload your own stock data or use the sample data provided.
 # Sidebar for inputs
 st.sidebar.header("Settings")
 
-# Option to use sample data or upload custom data
+# Initialize database session state for tracking operations
+if 'db_message' not in st.session_state:
+    st.session_state.db_message = None
+if 'db_message_type' not in st.session_state:
+    st.session_state.db_message_type = None
+if 'analysis_name' not in st.session_state:
+    st.session_state.analysis_name = ""
+if 'loaded_analysis_id' not in st.session_state:
+    st.session_state.loaded_analysis_id = None
+
+# Add database management section to sidebar
+st.sidebar.subheader("Data Source")
+
+# Option to use sample data, database data, or upload custom data
 data_option = st.sidebar.radio(
     "Choose data source:",
-    ("Use sample data", "Upload your own CSV")
+    ("Use sample/database data", "Upload your own CSV")
 )
 
 data = None
-if data_option == "Use sample data":
-    # List sample files
-    sample_files = [f for f in os.listdir("sample_data") if f.endswith('.csv')]
-    if sample_files:
-        selected_sample = st.sidebar.selectbox("Select a sample stock:", sample_files)
-        data = load_csv_data(f"sample_data/{selected_sample}")
-        st.sidebar.info(f"Loaded sample data: {selected_sample}")
+selected_symbol = None
+
+if data_option == "Use sample/database data":
+    # Get available symbols from database
+    db_symbols = get_available_stocks()
+    
+    if db_symbols:
+        # Create option list with symbols
+        available_stocks = db_symbols
+        selected_symbol = st.sidebar.selectbox("Select a stock:", available_stocks)
+        
+        if selected_symbol:
+            # Load from database
+            data = load_data_from_db(selected_symbol)
+            
+            if data is not None and not data.empty:
+                st.sidebar.info(f"Loaded data for {selected_symbol} from database")
+            else:
+                # Fallback to sample file if no data in database
+                sample_file = f"sample_data/{selected_symbol}.csv"
+                if os.path.exists(sample_file):
+                    data = load_csv_data(sample_file)
+                    st.sidebar.info(f"Loaded sample data for {selected_symbol}")
+                else:
+                    st.sidebar.warning(f"No data found for {selected_symbol}")
     else:
-        st.sidebar.warning("No sample files found.")
+        # List sample files if no database symbols
+        sample_files = [f for f in os.listdir("sample_data") if f.endswith('.csv')]
+        if sample_files:
+            selected_sample = st.sidebar.selectbox("Select a sample stock:", sample_files)
+            selected_symbol = selected_sample.split('.')[0]
+            data = load_csv_data(f"sample_data/{selected_sample}")
+            st.sidebar.info(f"Loaded sample data: {selected_sample}")
+        else:
+            st.sidebar.warning("No sample files or database stocks found.")
 else:
     # File uploader
     uploaded_file = st.sidebar.file_uploader("Upload a CSV file", type=["csv"])
@@ -51,6 +90,10 @@ else:
     if uploaded_file is not None:
         # Read the file as string
         string_data = StringIO(uploaded_file.getvalue().decode("utf-8"))
+        
+        # Get the symbol for this data
+        file_symbol = uploaded_file.name.split('.')[0].upper()
+        selected_symbol = file_symbol
         
         # Validate and load the data
         is_valid, message = validate_csv_data(string_data)
@@ -64,9 +107,29 @@ else:
                 data['Date'] = pd.to_datetime(data['date'])
                 data = data.drop('date', axis=1)
             
-            st.sidebar.success("Data loaded successfully!")
+            st.sidebar.success(f"Data for {file_symbol} loaded successfully!")
+            
+            # Option to save to database
+            if st.sidebar.button(f"Save {file_symbol} data to database"):
+                is_saved, save_message = save_stock_data(file_symbol, data)
+                if is_saved:
+                    st.session_state.db_message = save_message
+                    st.session_state.db_message_type = "success"
+                else:
+                    st.session_state.db_message = save_message
+                    st.session_state.db_message_type = "error"
+                st.rerun()
         else:
             st.sidebar.error(f"Invalid data format: {message}")
+            
+# Display database operation messages
+if st.session_state.db_message:
+    if st.session_state.db_message_type == "success":
+        st.sidebar.success(st.session_state.db_message)
+    else:
+        st.sidebar.error(st.session_state.db_message)
+    # Clear after showing once
+    st.session_state.db_message = None
 
 # If data is loaded successfully
 if data is not None:
