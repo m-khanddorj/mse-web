@@ -45,11 +45,11 @@ data = None
 
 if data_option == "Хувьцаа сонгох":
     # List sample files
-    sample_files = [f for f in os.listdir("sample_data") if f.endswith(".csv")]
+    sample_files = sorted([f for f in os.listdir("sample_data") if f.endswith(".csv")])
     if sample_files:
         selected_sample = st.selectbox(
             "Жишээ хувьцааг сонгоно уу:", sample_files,
-            format_func = lambda x: x.split(".")[0]
+            format_func = lambda x: x.split(".")[0],
         )
         data = load_csv_data(f"sample_data/{selected_sample}")
         st.info(f"Жишээ өгөгдөл ачааллаа: {selected_sample}")
